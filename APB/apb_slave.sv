@@ -1,6 +1,7 @@
 module apb_slave(apb_interface apb_if);
 
     logic [7:0] memory [0:15];
+    logic bitt;  //[HACK: ] fixes endless display in the end
 
     always_ff @(posedge apb_if.PCLK or negedge apb_if.PRESETn) begin
         if (!apb_if.PRESETn) begin
@@ -35,6 +36,10 @@ module apb_slave(apb_interface apb_if);
 
             end // PSEL && PENABLE && !PWRITE
 
-	if (!apb_if.PSEL) apb_if.PREADY <= 1'b0;
+	if (!apb_if.PSEL) begin
+		apb_if.PREADY <= 1'b0;
+		if(apb_if.PWRITE) begin $display("[APB_SLAVE] write in adr = %h data = %h", apb_if.PADDR, apb_if.PWDATA);  bitt <= 1; end
+		if(!apb_if.PWRITE && bitt) begin $display("[APB_SLAVE] read from adr = %h data = %h", apb_if.PADDR, apb_if.PRDATA); bitt <= 0; end
+	end
     end //always
 endmodule
